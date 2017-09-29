@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 // JSR-335 Lambda Expressions for the Java Programming Language
 
@@ -65,6 +66,9 @@ public class Lambdas01 {
         if (person != null) {
             person.print();
         }
+
+        assertNotNull(person);
+        assertEquals( new Person("name 1", "lastName 2", 40), person);
     }
 
     @Test
@@ -77,14 +81,17 @@ public class Lambdas01 {
 
         final Optional<Person> personOptional =
                 FluentIterable.from(persons)
-                        .firstMatch(new Predicate<Person>() {
-                            public boolean apply(Person p) {
-                                return p.getFirstName().equals("name 1");
+                              .firstMatch(new Predicate<Person>() {
+                                  @Override
+                                public boolean apply(Person p) {
+                                    return "name 1".equals(p.getFirstName());
                             }
                         });
 
         if (personOptional.isPresent()) {
             personOptional.get().print();
+            assertNotNull(personOptional.get());
+            assertEquals(new Person("name 1", "lastName 2", 40), personOptional.get());
         }
     }
 
