@@ -26,7 +26,7 @@ public class Lambdas05 {
 
 
     private static class PersonHelper {
-        public static String stringRepresentation(Person person) {
+        static String stringRepresentation(Person person) {
             return person.toString();
         }
     }

@@ -6,7 +6,7 @@ import org.junit.Test;
 @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class Lambdas04 {
 
-    private void run(Runnable r) {
+    private void runFromCurrentThread(Runnable r) {
         r.run();
     }
 
@@ -14,7 +14,7 @@ public class Lambdas04 {
     public void closure() {
         Person person = new Person("John", "Galt", 33);
 
-        run(new Runnable() {
+        runFromCurrentThread(new Runnable() {
             @Override
             public void run() {
                 person.print();
@@ -29,13 +29,13 @@ public class Lambdas04 {
         Person person = new Person("John", "Galt", 33);
 
         // statement lambda
-        run(() -> {
+        runFromCurrentThread(() -> {
             person.print();
         });
         // expression lambda
-        run(() -> person.print());
+        runFromCurrentThread(() -> person.print());
         // method reference
-        run(person::print);
+        runFromCurrentThread(person::print);
     }
 
     private Person _person = null;
@@ -48,8 +48,8 @@ public class Lambdas04 {
     public void closure_this_lambda() {
         _person = new Person("John", "Galt", 33);
 
-        run(() -> /*this.*/_person.print());
-        run(/*this.*/_person::print);
+        runFromCurrentThread(() -> /*this.*/_person.print());
+        runFromCurrentThread(/*this.*/_person::print);
 
         _person = new Person("a", "a", 1);
 
@@ -58,7 +58,7 @@ public class Lambdas04 {
 
     private Runnable runLater(Runnable r) {
         return () -> {
-            System.out.println("before run");
+            System.out.println("before runFromCurrentThread");
             r.run();
         };
     }
@@ -70,7 +70,7 @@ public class Lambdas04 {
 
         //final Person person = _person;
         final Runnable r1 = runLater(() -> _person.print());
-        final Runnable r2 = runLater(get_person()::print);
+        final Runnable r2 = runLater(this.get_person()::print);
 
         _person = new Person("a", "a", 1);
 

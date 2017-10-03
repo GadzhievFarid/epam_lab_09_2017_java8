@@ -21,7 +21,7 @@ public class Lambdas03 {
 
     @Test
     public void generic0() {
-        final GenericSum<Integer> sum =
+        GenericSum<Integer> sum =
                 new GenericSum<Integer>() {
                     @Override
                     public Integer sum(Integer i1, Integer i2) {
@@ -35,7 +35,7 @@ public class Lambdas03 {
 
     @Test
     public void generic1() {
-        final GenericSum<Integer> sum =
+        GenericSum<Integer> sum =
                 (Integer i1, Integer i2) -> {
                     System.out.print("before sum");
                     return i1 + i2;
