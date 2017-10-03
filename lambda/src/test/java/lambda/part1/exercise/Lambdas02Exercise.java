@@ -39,12 +39,12 @@ public class Lambdas02Exercise {
                 new Person("name 2", "lastName 1", 30)
         );
 
-        Person person = null;
-
         // TODO use FluentIterable
         final Optional<Person> personOptional =
                 FluentIterable.from(persons).firstMatch(p -> p != null && p.getAge() == 30);
 
-        assertEquals(personOptional.get(), new Person("name 1", "lastName 2", 30));
+        if (personOptional.isPresent()) {
+            assertEquals(personOptional.get(), new Person("name 1", "lastName 2", 30));
+        }
     }
 }
