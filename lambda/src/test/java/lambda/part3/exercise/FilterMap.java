@@ -1,6 +1,9 @@
 package lambda.part3.exercise;
 
+import org.junit.Test;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -52,13 +55,29 @@ public class FilterMap {
         }
 
         public <R> LazyCollectionHelper<R> map(Function<T, R> function) {
-            // TODO
-            throw new UnsupportedOperationException();
+            List<Container<Object, Object>> newActions = new ArrayList<>(actions);
+            newActions.add(new Container<>((Function<Object, Object>) function));
+            return new LazyCollectionHelper<R>((List<R>) list, newActions);
         }
 
         public List<T> force() {
-            // TODO
-            throw new UnsupportedOperationException();
+            List<T> result = new ArrayList<>();
+            nextValue:
+            for (Object value : list) {
+                for (Container<Object, Object> action : actions) {
+                    Predicate<Object> predicate = action.getPredicate();
+                    if (predicate != null) {
+                        if (!predicate.test(value)) {
+                            continue nextValue;
+                        } else {
+                            Function<Object, Object> function = action.getFunction();
+                            value = function.apply(value);
+                        }
+                    }
+                }
+                result.add((T) value);
+            }
+            return result;
         }
     }
 }
