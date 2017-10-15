@@ -6,10 +6,7 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
@@ -109,11 +106,13 @@ public class StreamsExercise1 {
                                 new JobHistoryEntry(2, "dev", "google")
                         )));
 
-
-        int result = employees.stream()
-                .flatMap(employee -> employee.getJobHistory().stream())
-                .filter(jobHistoryEntry -> "epam".equals(jobHistoryEntry.getEmployer()))
-                .mapToInt(JobHistoryEntry::getDuration).sum();
+        int result = employees.parallelStream()
+                              .flatMap(employee -> employee.getJobHistory().stream())
+                              .filter(entry -> "epam".equals(entry.getEmployer()))
+                              .mapToInt(JobHistoryEntry::getDuration)
+                              .sum();
+//                              .reduce(0, (value, entry) -> value + entry.getDuration(), Integer::sum);
+//                              .collect(Collectors.summingInt(JobHistoryEntry::getDuration));
 
         assertEquals(11, result);
     }
