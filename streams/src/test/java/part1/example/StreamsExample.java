@@ -215,7 +215,6 @@ public class StreamsExample {
                                 employee -> employee.getJobHistory().stream()
                         )
                         .collect(mapping(JobHistoryEntry::getDuration, Collectors.reducing(0, (a, b) -> a + b)));
-
         System.out.println("sum: " + sumDuration);
     }
 
