@@ -3,7 +3,6 @@ package lambda.part3.exercise;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
-import jdk.nashorn.internal.scripts.JO;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -110,7 +110,7 @@ public class Mapping {
     private static class LazyMapHelper<T, R> {
 
         private final List<T> list;
-        private final Function<T,R> function;
+        private final Function<T, R> function;
 
         public LazyMapHelper(List<T> list, Function<T, R> function) {
             this.list = list;
@@ -122,17 +122,41 @@ public class Mapping {
         }
 
         public List<R> force() {
-            List<R> result = new ArrayList<>(this.list.size());
-            this.list.forEach(element -> result.add(this.function.apply(element)));
+            List<R> result = new ArrayList<>(list.size());
+            list.forEach(element -> result.add(this.function.apply(element)));
             return result;
         }
 
         public <R2> LazyMapHelper<T, R2> map(Function<R, R2> f) {
-           return new LazyMapHelper<>(this.list, function.andThen(f));
+            return new LazyMapHelper<>(this.list, function.andThen(f));
         }
     }
 
-    // TODO * LazyFlatMapHelper
+    private static class LazyFlatMapHelper<T, R> {
+        private final List<T> list;
+        private final Function<T, List<R>> mapper;
+
+        LazyFlatMapHelper(List<T> list, Function<T, List<R>> mapper) {
+            this.list = list;
+            this.mapper = mapper;
+        }
+
+        public static <T> LazyFlatMapHelper<T, T> from(List<T> list) {
+            return new LazyFlatMapHelper<>(list, Collections::singletonList);
+        }
+
+        public <U> LazyFlatMapHelper<T, U> flatMap(Function<R, List<U>> remapper) {
+            return new LazyFlatMapHelper<>(this.list, mapper.andThen(result -> result.stream()
+                    .flatMap(element -> remapper.apply(element).stream())
+                    .collect(Collectors.toList())));
+        }
+
+        public List<R> force() {
+            ArrayList<R> result = new ArrayList<>();
+            list.stream().map(mapper).forEach(result::addAll);
+            return result;
+        }
+    }
 
     @Test
     public void lazyMapping() {
