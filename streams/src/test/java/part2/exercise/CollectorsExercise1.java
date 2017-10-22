@@ -6,6 +6,10 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Comparator.comparing;
 
 public class CollectorsExercise1 {
 
@@ -14,31 +18,40 @@ public class CollectorsExercise1 {
         private final String position;
         private final int duration;
 
-        public PersonPositionDuration(Person person, String position, int duration) {
+        private PersonPositionDuration(Person person, String position, int duration) {
             this.person = person;
             this.position = position;
             this.duration = duration;
         }
 
-        public Person getPerson() {
+        Person getPerson() {
             return person;
         }
 
-        public String getPosition() {
+        String getPosition() {
             return position;
         }
 
-        public int getDuration() {
+        int getDuration() {
             return duration;
         }
     }
 
 
     // "epam" -> "Alex Ivanov 23, Semen Popugaev 25, Ivan Ivanov 33"
+    //Не понимаю в чем разница с employersStuffList из StreamsExercise2?
+
+
     @Test
     public void getEmployeesByEmployer() {
-        Map<String, String> result = null;
-
+        Map<String, Set<Person>> result = getEmployees().stream()
+                .flatMap(employee ->
+                        employee.getJobHistory()
+                                .stream()
+                                .map(JobHistoryEntry::getEmployer)
+                                .map(employer -> new AbstractMap.SimpleEntry<>(employer, employee.getPerson())))
+                .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey, Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toSet())));
+        result.forEach((employer, employees) -> System.out.println(employer + "->" + employees.toString()));
     }
 
     @Test
@@ -48,17 +61,19 @@ public class CollectorsExercise1 {
         coolestByPosition.forEach((position, person) -> System.out.println(position + " -> " + person));
     }
 
+    //Не понимаю в чем разница с getCoolestByPosition из StreamsExample?
     private Map<String, Person> getCoolestByPosition(List<Employee> employees) {
-        // First option
-        // Collectors.maxBy
-        // Collectors.collectingAndThen
-        // Collectors.groupingBy
-
-        // Second option
-        // Collectors.toMap
-        // iterate twice: stream...collect(...).stream()...
-        // TODO
-        throw new UnsupportedOperationException();
+        Stream<PersonPositionDuration> personPositionDurationStream = employees.stream()
+                .flatMap(
+                        e -> e.getJobHistory()
+                                .stream()
+                                .map(j -> new PersonPositionDuration(e.getPerson(), j.getPosition(), j.getDuration())));
+        Map<String, Person> result = personPositionDurationStream
+                .collect(Collectors.groupingBy(
+                        PersonPositionDuration::getPosition,
+                        Collectors.collectingAndThen(Collectors.maxBy(comparing(PersonPositionDuration::getDuration)), p -> p.isPresent() ? p.get().getPerson() : null)));
+        System.out.println(result);
+        return result;
     }
 
     private List<Employee> getEmployees() {
