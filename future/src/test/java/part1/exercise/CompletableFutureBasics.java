@@ -29,8 +29,8 @@ public class CompletableFutureBasics {
     @BeforeClass
     public static void before() {
         Map<String, Employee> employeeMap = Generator.generateEmployeeList(1000)
-                                                     .stream()
-                                                     .collect(toMap(e -> getKeyByPerson(e.getPerson()), Function.identity(), (a, b) -> a));
+                .stream()
+                .collect(toMap(e -> getKeyByPerson(e.getPerson()), Function.identity(), (a, b) -> a));
         employeeDb = new SlowCompletableFutureDb<>(employeeMap);
         keys = new ArrayList<>(employeeMap.keySet());
     }
@@ -52,21 +52,18 @@ public class CompletableFutureBasics {
     public void createNonEmpty() throws ExecutionException, InterruptedException {
         Person person = new Person("John", "Galt", 33);
 
-        // TODO Create non empty Optional
-        Optional<Person> optPerson = null;
+        Optional<Person> optPerson = Optional.of(person);
 
         assertTrue(optPerson.isPresent());
         assertEquals(person, optPerson.get());
 
-        // TODO Create stream with a single element
-        Stream<Person> streamPerson = null;
+        Stream<Person> streamPerson = Stream.of(person);
 
         List<Person> persons = streamPerson.collect(toList());
         assertThat(persons.size(), is(1));
         assertEquals(person, persons.get(0));
 
-        // TODO Create completed CompletableFuture
-        CompletableFuture<Person> futurePerson = null;
+        CompletableFuture<Person> futurePerson = CompletableFuture.completedFuture(person);
 
         assertTrue(futurePerson.isDone());
         assertEquals(person, futurePerson.get());
@@ -74,20 +71,17 @@ public class CompletableFutureBasics {
 
     @Test
     public void createEmpty() throws ExecutionException, InterruptedException {
-        // TODO Create empty Optional
-        Optional<Person> optPerson = null;
+        Optional<Person> optPerson = Optional.empty();
 
         assertFalse(optPerson.isPresent());
 
-        // TODO Create empty stream
-        Stream<Person> streamPerson = null;
+        Stream<Person> streamPerson = Stream.of();
 
         List<Person> persons = streamPerson.collect(toList());
         assertThat(persons.size(), is(0));
 
-        // TODO Complete CompletableFuture with NoSuchElementException
-        CompletableFuture<Person> futurePerson = null;
-        // futurePerson.???
+        CompletableFuture<Person> futurePerson = new CompletableFuture<>();
+        futurePerson.completeExceptionally(new NoSuchElementException("There's no future"));
 
         assertTrue(futurePerson.isCompletedExceptionally());
         assertTrue(futurePerson
@@ -99,28 +93,19 @@ public class CompletableFutureBasics {
     public void forEach() throws ExecutionException, InterruptedException {
         Person person = new Person("John", "Galt", 33);
 
-        // TODO Create non empty Optional
-        Optional<Person> optPerson = null;
-
+        Optional<Person> optPerson = Optional.of(person);
         CompletableFuture<Person> result1 = new CompletableFuture<>();
-
-        // TODO using optPerson.ifPresent complete result1
+        optPerson.ifPresent(result1::complete);
         assertEquals(person, result1.get());
 
-        // TODO Create stream with a single element
-        Stream<Person> streamPerson = null;
-
+        Stream<Person> streamPerson = Stream.of(person);
         CompletableFuture<Person> result2 = new CompletableFuture<>();
-
-        // TODO Using streamPerson.forEach complete result2
+        streamPerson.forEach(result2::complete);
         assertEquals(person, result2.get());
 
-        // TODO Create completed CompletableFuture
-        CompletableFuture<Person> futurePerson = null;
-
+        CompletableFuture<Person> futurePerson = CompletableFuture.completedFuture(person);
         CompletableFuture<Person> result3 = new CompletableFuture<>();
-
-        // TODO Using futurePerson.thenAccept complete result3
+        futurePerson.thenAccept(result3::complete);
         assertEquals(person, result3.get());
     }
 
@@ -128,28 +113,16 @@ public class CompletableFutureBasics {
     public void map() throws ExecutionException, InterruptedException {
         Person person = new Person("John", "Galt", 33);
 
-        // TODO Create non empty Optional
-        Optional<Person> optPerson = null;
-
-        // TODO get Optional<first name> from optPerson
-        Optional<String> optFirstName = null;
-
+        Optional<Person> optPerson = Optional.of(person);
+        Optional<String> optFirstName = optPerson.map(Person::getFirstName);
         assertEquals(person.getFirstName(), optFirstName.get());
 
-        // TODO Create stream with a single element
-        Stream<Person> streamPerson = null;
-
-        // TODO Get Stream<first name> from streamPerson
-        Stream<String> streamFirstName = null;
-
+        Stream<Person> streamPerson = Stream.of(person);
+        Stream<String> streamFirstName = streamPerson.map(Person::getFirstName);
         assertEquals(person.getFirstName(), streamFirstName.collect(toList()).get(0));
 
-        // TODO Create completed CompletableFuture
-        CompletableFuture<Person> futurePerson = null;
-
-        // TODO Get CompletableFuture<first name> from futurePerson
-        CompletableFuture<String> futureFirstName = null;
-
+        CompletableFuture<Person> futurePerson = CompletableFuture.completedFuture(person);
+        CompletableFuture<String> futureFirstName = futurePerson.thenApply(Person::getFirstName);
         assertEquals(person.getFirstName(), futureFirstName.get());
     }
 
@@ -157,29 +130,26 @@ public class CompletableFutureBasics {
     public void flatMap() throws ExecutionException, InterruptedException {
         Person person = employeeDb.get(keys.get(0)).thenApply(Employee::getPerson).get();
 
-        // TODO Create non empty Optional
-        Optional<Person> optPerson = null;
-
-        // TODO Using flatMap and .getFirstName().codePoints().mapToObj(p -> p).findFirst()
-        // TODO get the first letter of first name if any
-        Optional<Integer> optFirstCodePointOfFirstName = null;
+        Optional<Person> optPerson = Optional.of(person);
+        Optional<Integer> optFirstCodePointOfFirstName = optPerson
+                .flatMap(person1 ->
+                        person1.getFirstName()
+                                .codePoints()
+                                .boxed()
+                                .findFirst());
 
         assertEquals(Integer.valueOf(65), optFirstCodePointOfFirstName.get());
 
-        // TODO Create stream with a single element
-        Stream<Person> streamPerson = null;
-
-        // TODO Using flatMapToInt and .getFirstName().codePoints() get codepoints stream from streamPerson
-        IntStream codePoints = null;
-
-        int[] codePointsArray = codePoints.toArray();
+        Stream<Person> streamPerson = Stream.of(person);
+        int[] codePointsArray = streamPerson
+                .flatMapToInt(person1 ->
+                        person1.getFirstName()
+                                .codePoints())
+                .toArray();
         assertEquals(person.getFirstName(), new String(codePointsArray, 0, codePointsArray.length));
 
-        // TODO Create completed CompletableFuture
-        CompletableFuture<Person> futurePerson = null;
-
-        // TODO Get CompletableFuture<Employee> from futurePerson using getKeyByPerson and employeeDb
-        CompletableFuture<Employee> futureEmployee = null;
+        CompletableFuture<Person> futurePerson = CompletableFuture.completedFuture(person);
+        CompletableFuture<Employee> futureEmployee = futurePerson.thenApply(CompletableFutureBasics::getKeyByPerson).thenCompose(employeeDb::get);
 
         assertEquals(person, futureEmployee.thenApply(Employee::getPerson).get());
     }
