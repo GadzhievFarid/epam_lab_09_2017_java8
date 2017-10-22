@@ -53,12 +53,35 @@ public class OptionalExample {
 
     @Test
     public void flatMap() {
-        throw new UnsupportedOperationException("Not implemented");
+       Optional<String> o1 = getOptional();
+
+        Function<String, Optional<Integer>> getLength = s -> Optional.of(s.length());
+
+        Optional<Integer> expected = o1.flatMap(getLength);
+
+        Optional<Integer> actual;
+        if (o1.isPresent()) {
+            actual = Optional.of(o1.get().length());
+        } else {
+            actual = Optional.empty();
+        }
+
+        assertEquals(expected, actual);
     }
 
     @Test
     public void filter() {
-        throw new UnsupportedOperationException("Not implemented");
+        Optional<String> o1 = getOptional();
+        Optional<String> expected = o1.filter(o -> o.contains("ab"));
+
+        Optional<String> actual;
+        if (o1.isPresent()) {
+            actual = Optional.of("abc");
+        } else {
+            actual = Optional.empty();
+        }
+
+        assertEquals(expected, actual);
     }
 
     private Optional<String> getOptional() {
