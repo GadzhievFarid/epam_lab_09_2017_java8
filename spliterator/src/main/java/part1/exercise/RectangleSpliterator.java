@@ -1,72 +1,60 @@
 package part1.exercise;
 
+import com.sun.deploy.util.ArrayUtil;
+
+import javax.naming.OperationNotSupportedException;
+import java.util.Arrays;
+import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.IntConsumer;
 
 public class RectangleSpliterator extends Spliterators.AbstractIntSpliterator {
 
     private final int[][] array;
+    private int rowStartInclusive;
+    private int rowEndExclusive;
+    private int columnStartInclusive;
 
-    public RectangleSpliterator(int[][] array) {
-        super(checkArrayAndCalcEstimatedSize(array), 0);       // TODO заменить
-//       super(estimatedSize, Spliterator.IMMUTABLE
-//                          | Spliterator.ORDERED
-//                          | Spliterator.SIZED
-//                          | Spliterator.SUBSIZED
-//                          | Spliterator.NONNULL);
-        this.array = array;
+    RectangleSpliterator(int[][] array) {
+        this(array, 0, array.length, 0);
     }
 
-    private static long checkArrayAndCalcEstimatedSize(int[][] array) {
-        // TODO
+    private RectangleSpliterator(int[][] array, int rowStartInclusive, int rowEndExclusive, int columnStartInclusive) {
+        super(checkArrayAndCalcEstimatedSize(array), Spliterator.IMMUTABLE
+                | Spliterator.ORDERED
+                | Spliterator.SIZED
+                | Spliterator.SUBSIZED
+                | Spliterator.NONNULL);
+        this.array = array;
+        this.rowStartInclusive = rowStartInclusive;
+        this.rowEndExclusive = rowEndExclusive;
+        this.columnStartInclusive = columnStartInclusive;
+    }
 
+
+    private static long checkArrayAndCalcEstimatedSize(int[][] array) {
         return array.length * array[0].length;
     }
 
     @Override
     public OfInt trySplit() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long estimateSize() {
-        // TODO
-        throw new UnsupportedOperationException();
+        if (rowEndExclusive - rowStartInclusive < 2) {
+            return null;
+        }
+        int middleRow = rowStartInclusive + (rowEndExclusive - rowStartInclusive) / 2;
+        RectangleSpliterator leftSpliterator = new RectangleSpliterator(array, 0, middleRow, 0);
+        rowStartInclusive = middleRow;
+        columnStartInclusive = 0;
+        return leftSpliterator;
     }
 
     @Override
     public boolean tryAdvance(IntConsumer action) {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-
-}
-
-
-class A {
-
-    protected String val;
-
-    A() {
-        setVal();
-    }
-
-    public void setVal() {
-        val = "A";
-    }
-}
-
-class B extends A {
-
-    @Override
-    public void setVal() {
-        val = "B";
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new B().val);
-
+        if (rowStartInclusive < rowEndExclusive && columnStartInclusive < array[0].length) {
+            action.accept(array[rowStartInclusive][columnStartInclusive]);
+            ++columnStartInclusive;
+            return true;
+        }
+        return false;
     }
 }
